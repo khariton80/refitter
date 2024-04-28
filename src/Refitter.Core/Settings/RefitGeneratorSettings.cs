@@ -31,6 +31,10 @@ public class RefitGeneratorSettings
     /// </summary>
     public bool GenerateContracts { get; set; } = true;
 
+    public bool GenerateInterface { get; set; } = true;
+
+    public bool GenerateDependencyInjection { get; set; } = true;
+
     /// <summary>
     /// Gets or sets a value indicating whether XML doc comments should be generated.
     /// </summary>
@@ -122,7 +126,7 @@ public class RefitGeneratorSettings
     public bool GenerateDeprecatedOperations { get; set; } = true;
 
     /// <summary>
-    /// Generate operation names using pattern. 
+    /// Generate operation names using pattern.
     /// When using <see cref="MultipleInterfaces"/> <see cref="Core.MultipleInterfaces.ByEndpoint"/>, this is name of the Execute() method in the interface.
     /// </summary>
     public string? OperationNameTemplate { get; set; }
@@ -143,6 +147,10 @@ public class RefitGeneratorSettings
     /// For the Source Generator, this is the name of the generated class and the default is [.refitter defined naming OR .refitter filename].g.cs)
     /// </summary>
     public string? OutputFilename { get; set; }
+
+    public string? ContractOutputFilename { get; set; }
+
+    public bool SplitContracts { get; set; }
 
     /// <summary>
     /// Gets or sets the settings describing how to register generated interface to the .NET Core DI container

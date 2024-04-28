@@ -85,6 +85,23 @@ public sealed class GenerateCommand : AsyncCommand<Settings>
                 Directory.CreateDirectory(directory);
 
             await File.WriteAllTextAsync(outputPath, code);
+
+            if(refitGeneratorSettings.SplitContracts)
+            {
+                refitGeneratorSettings.GenerateContracts = true;
+                refitGeneratorSettings.GenerateInterface = false;
+                refitGeneratorSettings.GenerateDependencyInjection = false;
+                generator = await RefitGenerator.CreateAsync(refitGeneratorSettings);
+                var contractCode = generator.Generate().ReplaceLineEndings();
+                var contractOutputPath = GetContractOutputPath(settings, refitGeneratorSettings);
+                AnsiConsole.MarkupLine($"[green]Contract Output: {Path.GetFullPath(contractOutputPath)}[/]");
+
+                var contractDirectory = Path.GetDirectoryName(contractOutputPath);
+                if (!string.IsNullOrWhiteSpace(contractDirectory) && !Directory.Exists(contractDirectory))
+                    Directory.CreateDirectory(contractDirectory);
+
+                await File.WriteAllTextAsync(contractOutputPath, contractCode);
+            }
             await Analytics.LogFeatureUsage(settings);
 
             AnsiConsole.MarkupLine($"[green]Duration: {stopwatch.Elapsed}{Crlf}[/]");
@@ -146,6 +163,21 @@ public sealed class GenerateCommand : AsyncCommand<Settings>
         var outputPath = settings.OutputPath != Settings.DefaultOutputPath && !string.IsNullOrWhiteSpace(settings.OutputPath)
                         ? settings.OutputPath
                         : refitGeneratorSettings.OutputFilename ?? "Output.cs";
+
+        if (!string.IsNullOrWhiteSpace(refitGeneratorSettings.OutputFolder) &&
+            refitGeneratorSettings.OutputFolder != RefitGeneratorSettings.DefaultOutputFolder)
+        {
+            outputPath = Path.Combine(refitGeneratorSettings.OutputFolder, outputPath);
+        }
+
+        return outputPath;
+    }
+
+    private static string GetContractOutputPath(Settings settings, RefitGeneratorSettings refitGeneratorSettings)
+    {
+        var outputPath = settings.OutputPath != Settings.DefaultOutputPath && !string.IsNullOrWhiteSpace(settings.OutputPath)
+            ? settings.OutputPath
+            : refitGeneratorSettings.ContractOutputFilename ?? "Output.cs";
 
         if (!string.IsNullOrWhiteSpace(refitGeneratorSettings.OutputFolder) &&
             refitGeneratorSettings.OutputFolder != RefitGeneratorSettings.DefaultOutputFolder)

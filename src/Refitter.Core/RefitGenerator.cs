@@ -3,6 +3,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
+using YamlDotNet.Serialization;
+
 namespace Refitter.Core;
 
 /// <summary>
@@ -125,11 +127,13 @@ public class RefitGenerator(RefitGeneratorSettings settings, OpenApiDocument doc
         var factory = new CSharpClientGeneratorFactory(settings, document);
         var generator = factory.Create();
         var docGenerator = new XmlDocumentationGenerator(settings);
-        var contracts = RefitInterfaceImports
-            .GetImportedNamespaces(settings)
-            .Aggregate(
-                generator.GenerateFile(),
-                (current, import) => current.Replace($"{import}.", string.Empty));
+        var contracts = settings.GenerateContracts
+            ? RefitInterfaceImports
+                .GetImportedNamespaces(settings)
+                .Aggregate(
+                    generator.GenerateFile(),
+                    (current, import) => current.Replace($"{import}.", string.Empty))
+            : string.Empty;
 
         IRefitInterfaceGenerator interfaceGenerator = settings.MultipleInterfaces switch
         {
@@ -140,10 +144,10 @@ public class RefitGenerator(RefitGeneratorSettings settings, OpenApiDocument doc
 
         var generatedCode = GenerateClient(interfaceGenerator);
         return new StringBuilder()
-            .AppendLine(generatedCode.SourceCode)
+            .AppendLine(settings.GenerateInterface ? generatedCode.SourceCode: string.Empty)
             .AppendLine()
-            .AppendLine(settings.GenerateContracts ? contracts : string.Empty)
-            .AppendLine(DependencyInjectionGenerator.Generate(settings, generatedCode.InterfaceNames))
+            .AppendLine(contracts)
+            .AppendLine(settings.GenerateDependencyInjection ? DependencyInjectionGenerator.Generate(settings, generatedCode.InterfaceNames) : string.Empty)
             .ToString()
             .TrimEnd();
     }

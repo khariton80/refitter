@@ -14,7 +14,7 @@ dotnet build -c Release
 
 Write-Host "Publishing Refitter"
 "win-x64","win-x86","win-arm64","win-arm","osx-x64","osx-arm64","linux-x64","linux-arm64","linux-arm" | ForEach-Object { 
-    dotnet publish ./Refitter/Refitter.csproj -c Release -r $_ --self-contained
+    dotnet publish ./Refitter/Refitter.csproj -c Release -r $_ --self-contained -f net8.0
 }
 
 Write-Host "Package Refitter"
